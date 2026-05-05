@@ -4,16 +4,10 @@ import {
   FileTextOutlined,
   HomeOutlined,
   UserOutlined,
-  TeamOutlined,
   TagOutlined,
-  QuestionCircleOutlined,
   UsergroupAddOutlined,
-  CrownOutlined,
-  BookOutlined,
   SettingOutlined,
-  AuditOutlined,
-  StarOutlined,
-  CalendarOutlined,
+  CrownOutlined,
 } from '@ant-design/icons';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
@@ -43,28 +37,10 @@ export default function StaticSidebar({ collapsed }) {
       onClick: () => navigate('/users'),
     },
     {
-      key: '/papal-decisions',
-      icon: <CrownOutlined />,
-      label: t('navigation.papalDecisions'),
-      onClick: () => navigate('/papal-decisions'),
-    },
-    {
-      key: '/magazines',
-      icon: <BookOutlined />,
-      label: t('navigation.magazines'),
-      onClick: () => navigate('/magazines'),
-    },
-    {
       key: '/clerics',
       icon: <UserOutlined />,
       label: t('navigation.clerics'),
       onClick: () => navigate('/clerics'),
-    },
-    {
-      key: '/committees',
-      icon: <TeamOutlined />,
-      label: t('navigation.committees'),
-      onClick: () => navigate('/committees'),
     },
     {
       key: '/tags',
@@ -73,52 +49,16 @@ export default function StaticSidebar({ collapsed }) {
       onClick: () => navigate('/tags'),
     },
     {
-      key: '/bible',
-      icon: <BookOutlined />,
-      label: t('navigation.bible'),
-      onClick: () => navigate('/bible'),
-    },
-    {
-      key: '/ask-the-pope',
-      icon: <QuestionCircleOutlined />,
-      label: t('navigation.askThePope'),
-      onClick: () => navigate('/ask-the-pope'),
-    },
-    {
-      key: '/portal-suggestions',
-      icon: <QuestionCircleOutlined />,
-      label: t('navigation.portalSuggestions'),
-      onClick: () => navigate('/portal-suggestions'),
-    },
-    {
-      key: '/synaxarium',
-      icon: <CalendarOutlined />,
-      label: t('navigation.synaxarium'),
-      onClick: () => navigate('/synaxarium'),
-    },
-    {
       key: '/saints',
-      icon: <StarOutlined />,
+      icon: <CrownOutlined />,
       label: t('navigation.saints'),
       onClick: () => navigate('/saints'),
-    },
-    {
-      key: '/faqs',
-      icon: <QuestionCircleOutlined />,
-      label: t('navigation.faqs'),
-      onClick: () => navigate('/faqs'),
     },
     {
       key: '/settings',
       icon: <SettingOutlined />,
       label: t('navigation.settings'),
       onClick: () => navigate('/settings'),
-    },
-    {
-      key: '/logs',
-      icon: <AuditOutlined />,
-      label: t('navigation.logs'),
-      onClick: () => navigate('/logs'),
     },
     {
       key: '/articles',
@@ -132,23 +72,18 @@ export default function StaticSidebar({ collapsed }) {
       label: t('navigation.entities'),
       onClick: () => navigate('/entities'),
     },
-    
   ];
 
-  // Get the selected key based on current location
   const getSelectedKey = () => {
     const pathname = location.pathname;
 
-    // Handle dashboard redirect
     if (pathname === '/' || pathname === '/dashboard') {
       return '/';
     }
 
-    // Find exact match or parent match
-    const exactMatch = menuItems.find(item => item.key === pathname);
+    const exactMatch = menuItems.find((item) => item.key === pathname);
     if (exactMatch) return exactMatch.key;
 
-    // For nested routes, find parent
     for (const item of menuItems) {
       if (pathname.startsWith(item.key + '/') && item.key !== '/') {
         return item.key;
@@ -199,38 +134,6 @@ export default function StaticSidebar({ collapsed }) {
         .church-sidebar .ant-menu-item:hover .anticon {
           color: #5C1A1B !important;
         }
-        .church-sidebar .sidebar-footer {
-          margin: 12px 16px 16px;
-          padding: ${collapsed ? '10px 8px' : '14px 16px'};
-          border: 1px solid rgba(183, 136, 79, 0.25);
-          border-radius: 14px;
-          background: linear-gradient(180deg, rgba(255, 255, 255, 0.7), rgba(255, 248, 238, 0.92));
-          box-shadow: 0 10px 24px rgba(92, 26, 27, 0.08);
-          color: #5C1A1B;
-          text-align: ${collapsed ? 'center' : 'start'};
-        }
-        .church-sidebar .sidebar-footer-label {
-          display: block;
-          font-size: 10px;
-          letter-spacing: 0.16em;
-          text-transform: uppercase;
-          color: rgba(92, 26, 27, 0.6);
-          margin-bottom: 4px;
-        }
-        .church-sidebar .sidebar-footer-brand {
-          display: block;
-          font-size: ${collapsed ? '11px' : '13px'};
-          font-weight: 700;
-          letter-spacing: 0.04em;
-          color: #5C1A1B;
-        }
-        .church-sidebar .sidebar-footer-note {
-          display: block;
-          margin-top: 4px;
-          font-size: 11px;
-          color: rgba(92, 26, 27, 0.72);
-          line-height: 1.4;
-        }
         ${isRTL ? `
           .church-sidebar .ant-menu-item-selected {
             color: #ffffff !important;
@@ -257,13 +160,15 @@ export default function StaticSidebar({ collapsed }) {
         }}
       >
         <div style={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
-          <div style={{
-            padding: '20px 0',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            background: '#f6f1e7',
-          }}>
+          <div
+            style={{
+              padding: '20px 0',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              background: '#f6f1e7',
+            }}
+          >
             <img
               src={logo}
               alt="Church Logo"
@@ -288,12 +193,14 @@ export default function StaticSidebar({ collapsed }) {
             />
           </div>
 
-          <div style={{
-            padding: '12px',
-            textAlign: 'center',
-            fontSize: '10px',
-            color: '#999'
-          }}>
+          <div
+            style={{
+              padding: '12px',
+              textAlign: 'center',
+              fontSize: '10px',
+              color: '#999',
+            }}
+          >
             {collapsed ? 'K' : 'Developed by Kinetics'}
           </div>
         </div>

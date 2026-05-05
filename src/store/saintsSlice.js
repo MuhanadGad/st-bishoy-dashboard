@@ -5,43 +5,18 @@ import { buildQuery } from '@/lib/queryHelper';
 const normalizeSaint = (saint) => {
   if (!saint) return saint;
 
-  const base = saint.base || saint;
-  const translation = saint.translation || {};
-
   return {
+    id: saint.id,
+    name: saint.name || '',
+    name_ar: saint.name_ar || '',
+    image: saint.image || '',
+    description: saint.description || '',
+    hasDetails: Boolean(saint.hasDetails),
+    first_paragraph: saint.first_paragraph || '',
+    first_image: saint.first_image || '',
+    second_paragraph: saint.second_paragraph || '',
+    second_image: saint.second_image || '',
     ...saint,
-    id: base.id ?? saint.id,
-    slug: base.slug ?? saint.slug,
-    image: base.image ?? saint.image ?? null,
-    saint_day: base.saint_day ?? saint.saint_day ?? null,
-    isActive: base.isActive ?? saint.isActive ?? false,
-    publishedAt: base.publishedAt ?? saint.publishedAt ?? null,
-    name: translation.name ?? saint.name ?? '',
-    subtitle: translation.subtitle ?? saint.subtitle ?? null,
-    biography: translation.biography ?? saint.biography ?? null,
-    excerpt: translation.excerpt ?? saint.excerpt ?? null,
-    translation_id: translation.id ?? saint.translation_id ?? null,
-    language_id: translation.language_id ?? saint.language_id ?? null,
-    translation_missing: saint.translation_missing ?? false,
-    base,
-    translation,
-  };
-};
-
-const normalizeSaintTranslation = (translation) => {
-  if (!translation) return translation;
-
-  return {
-    ...translation,
-    id: translation.id ?? translation.translation?.id,
-    name: translation.name ?? translation.translation?.name ?? '',
-    subtitle: translation.subtitle ?? translation.translation?.subtitle ?? null,
-    biography: translation.biography ?? translation.translation?.biography ?? null,
-    excerpt: translation.excerpt ?? translation.translation?.excerpt ?? null,
-    language_id: translation.language_id ?? translation.translation?.language_id ?? null,
-    saint_id: translation.saint_id ?? translation.translation?.saint_id ?? null,
-    language: translation.language ?? translation.translation?.language ?? null,
-    saint: translation.saint ?? translation.translation?.saint ?? null,
   };
 };
 
@@ -64,7 +39,7 @@ export const fetchSaint = createAsyncThunk(
   async (id, { rejectWithValue }) => {
     try {
       const response = await apiService.get(`/saints/${id}`);
-      return normalizeSaint(response.data?.data);
+      return normalizeSaint(response.data?.data || response.data);
     } catch (error) {
       return rejectWithValue(error.response?.data || error.message);
     }
@@ -107,70 +82,18 @@ export const deleteSaint = createAsyncThunk(
   }
 );
 
-export const fetchSaintTranslations = createAsyncThunk(
-  'saints/fetchSaintTranslations',
-  async (id, { rejectWithValue }) => {
-    try {
-      const response = await apiService.get(`/saints/${id}/translations`);
-      return response.data;
-    } catch (error) {
-      return rejectWithValue(error.response?.data || error.message);
-    }
-  }
-);
-
-export const createSaintTranslation = createAsyncThunk(
-  'saints/createSaintTranslation',
-  async (data, { rejectWithValue }) => {
-    try {
-      const response = await apiService.post('/saints-translations', data);
-      return normalizeSaintTranslation(response.data?.data || response.data);
-    } catch (error) {
-      return rejectWithValue(error.response?.data || error.message);
-    }
-  }
-);
-
-export const updateSaintTranslation = createAsyncThunk(
-  'saints/updateSaintTranslation',
-  async ({ id, data }, { rejectWithValue }) => {
-    try {
-      const response = await apiService.patch(`/saints-translations/${id}`, data);
-      return normalizeSaintTranslation(response.data?.data || response.data);
-    } catch (error) {
-      return rejectWithValue(error.response?.data || error.message);
-    }
-  }
-);
-
-export const deleteSaintTranslation = createAsyncThunk(
-  'saints/deleteSaintTranslation',
-  async (id, { rejectWithValue }) => {
-    try {
-      await apiService.delete(`/saints-translations/${id}`);
-      return id;
-    } catch (error) {
-      return rejectWithValue(error.response?.data || error.message);
-    }
-  }
-);
-
 const initialState = {
   saints: [],
   currentSaint: null,
-  currentSaintTranslations: [],
   page: 1,
   limit: 10,
   total: 0,
   loading: false,
-  translationsLoading: false,
   creating: false,
   updating: false,
   deleting: false,
-  creatingTranslation: false,
-  updatingTranslation: false,
-  deletingTranslation: false,
   error: null,
+  currentListRequestId: null,
 };
 
 const saintsSlice = createSlice({
@@ -179,9 +102,6 @@ const saintsSlice = createSlice({
   reducers: {
     clearCurrentSaint: (state) => {
       state.currentSaint = null;
-    },
-    clearCurrentSaintTranslations: (state) => {
-      state.currentSaintTranslations = [];
     },
     clearSaintError: (state) => {
       state.error = null;
@@ -196,18 +116,29 @@ const saintsSlice = createSlice({
   },
   extraReducers: (builder) => {
     builder
-      .addCase(fetchSaints.pending, (state) => {
+      .addCase(fetchSaints.pending, (state, action) => {
         state.loading = true;
         state.error = null;
+        state.currentListRequestId = action.meta.requestId;
       })
       .addCase(fetchSaints.fulfilled, (state, action) => {
+        if (state.currentListRequestId !== action.meta.requestId) {
+          return;
+        }
+
         state.loading = false;
         state.saints = (action.payload?.data || []).map(normalizeSaint);
         state.total = action.payload?.totalCount || action.payload?.data?.length || 0;
+        state.currentListRequestId = null;
       })
       .addCase(fetchSaints.rejected, (state, action) => {
+        if (state.currentListRequestId !== action.meta.requestId) {
+          return;
+        }
+
         state.loading = false;
         state.error = action.payload;
+        state.currentListRequestId = null;
       })
       .addCase(fetchSaint.pending, (state) => {
         state.loading = true;
@@ -263,9 +194,6 @@ const saintsSlice = createSlice({
       .addCase(deleteSaint.fulfilled, (state, action) => {
         state.deleting = false;
         state.saints = state.saints.filter((saint) => saint.id !== action.payload);
-        state.currentSaintTranslations = String(state.currentSaint?.id) === String(action.payload)
-          ? []
-          : state.currentSaintTranslations;
         if (state.total > 0) {
           state.total -= 1;
         }
@@ -276,75 +204,10 @@ const saintsSlice = createSlice({
       .addCase(deleteSaint.rejected, (state, action) => {
         state.deleting = false;
         state.error = action.payload;
-      })
-      .addCase(fetchSaintTranslations.pending, (state) => {
-        state.translationsLoading = true;
-        state.error = null;
-      })
-      .addCase(fetchSaintTranslations.fulfilled, (state, action) => {
-        state.translationsLoading = false;
-        state.currentSaintTranslations = (action.payload?.data || []).map(normalizeSaintTranslation);
-      })
-      .addCase(fetchSaintTranslations.rejected, (state, action) => {
-        state.translationsLoading = false;
-        state.error = action.payload;
-      })
-      .addCase(createSaintTranslation.pending, (state) => {
-        state.creatingTranslation = true;
-        state.error = null;
-      })
-      .addCase(createSaintTranslation.fulfilled, (state, action) => {
-        state.creatingTranslation = false;
-        if (action.payload) {
-          state.currentSaintTranslations.push(action.payload);
-        }
-      })
-      .addCase(createSaintTranslation.rejected, (state, action) => {
-        state.creatingTranslation = false;
-        state.error = action.payload;
-      })
-      .addCase(updateSaintTranslation.pending, (state) => {
-        state.updatingTranslation = true;
-        state.error = null;
-      })
-      .addCase(updateSaintTranslation.fulfilled, (state, action) => {
-        state.updatingTranslation = false;
-        if (action.payload) {
-          const index = state.currentSaintTranslations.findIndex(
-            (translation) => translation.id === action.payload.id
-          );
-          if (index !== -1) {
-            state.currentSaintTranslations[index] = action.payload;
-          }
-        }
-      })
-      .addCase(updateSaintTranslation.rejected, (state, action) => {
-        state.updatingTranslation = false;
-        state.error = action.payload;
-      })
-      .addCase(deleteSaintTranslation.pending, (state) => {
-        state.deletingTranslation = true;
-        state.error = null;
-      })
-      .addCase(deleteSaintTranslation.fulfilled, (state, action) => {
-        state.deletingTranslation = false;
-        state.currentSaintTranslations = state.currentSaintTranslations.filter(
-          (translation) => translation.id !== action.payload
-        );
-      })
-      .addCase(deleteSaintTranslation.rejected, (state, action) => {
-        state.deletingTranslation = false;
-        state.error = action.payload;
       });
   },
 });
 
-export const {
-  clearCurrentSaint,
-  clearCurrentSaintTranslations,
-  clearSaintError,
-  setSaintsPage,
-  setSaintsLimit,
-} = saintsSlice.actions;
+export const { clearCurrentSaint, clearSaintError, setSaintsPage, setSaintsLimit } = saintsSlice.actions;
 
 export default saintsSlice.reducer;

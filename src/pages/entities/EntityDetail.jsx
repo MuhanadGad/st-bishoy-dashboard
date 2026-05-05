@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo } from 'react';
+import React, { useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { useNavigate, useParams } from 'react-router-dom';
 import {
@@ -10,30 +10,15 @@ import {
   Modal,
   Space,
   Spin,
-  Table,
   Tag,
   Typography,
   message,
 } from 'antd';
-import {
-  ArrowLeftOutlined,
-  DeleteOutlined,
-  EditOutlined,
-  GlobalOutlined,
-  HomeOutlined,
-  PlusOutlined,
-  EyeOutlined,
-} from '@ant-design/icons';
+import { ArrowLeftOutlined, DeleteOutlined, EditOutlined, HomeOutlined } from '@ant-design/icons';
 import { useTranslation } from 'react-i18next';
 import { clearCurrentEntity, deleteEntity, fetchEntity } from '@/store/entitiesSlice';
-import {
-  clearCurrentEntityTranslations,
-  deleteEntityTranslation,
-  fetchEntityTranslations,
-  fetchLanguages,
-} from '@/store/translationsSlice';
 
-const { Title, Text } = Typography;
+const { Title } = Typography;
 
 const EntityDetail = () => {
   const dispatch = useDispatch();
@@ -41,39 +26,17 @@ const EntityDetail = () => {
   const { slug } = useParams();
   const { t } = useTranslation();
 
-  const { currentEntity, loading, deleting: deletingEntity } = useSelector((state) => state.entities);
-  const { languages, currentEntityTranslations, translationsLoading, deleting } = useSelector((state) => state.translations);
+  const { currentEntity, loading, deleting } = useSelector((state) => state.entities);
 
   useEffect(() => {
     if (slug) {
       dispatch(fetchEntity(slug));
     }
 
-    if (!languages?.length) {
-      dispatch(fetchLanguages({ limit: 1000 }));
-    }
-
     return () => {
       dispatch(clearCurrentEntity());
-      dispatch(clearCurrentEntityTranslations());
     };
-  }, [dispatch, languages?.length, slug]);
-
-  useEffect(() => {
-    if (currentEntity?.id) {
-      dispatch(fetchEntityTranslations(currentEntity.id));
-    }
-  }, [currentEntity?.id, dispatch]);
-
-  const translations = useMemo(() => currentEntityTranslations || [], [currentEntityTranslations]);
-  const usedLanguageIds = useMemo(
-    () => translations.filter((item) => item?.language_id).map((item) => item.language_id),
-    [translations]
-  );
-  const availableLanguageCount = useMemo(
-    () => (languages || []).filter((language) => !usedLanguageIds.includes(language.id)).length,
-    [languages, usedLanguageIds]
-  );
+  }, [dispatch, slug]);
 
   const getCategoryColor = (category) => {
     switch (category) {
@@ -86,28 +49,6 @@ const EntityDetail = () => {
       default:
         return 'default';
     }
-  };
-
-  const handleDeleteTranslation = (translation) => {
-    Modal.confirm({
-      title: t('translations.deleteConfirm'),
-      content: t('translations.deleteConfirmMessage', {
-        title: translation?.name || t('common.notAvailable'),
-        language: translation?.language?.name || t('common.notAvailable'),
-      }),
-      okText: t('common.delete'),
-      okType: 'danger',
-      cancelText: t('common.cancel'),
-      onOk: async () => {
-        try {
-          await dispatch(deleteEntityTranslation(translation.id)).unwrap();
-          message.success(t('translations.deleteSuccess'));
-          dispatch(fetchEntityTranslations(currentEntity.id));
-        } catch (submitError) {
-          message.error(t('translations.deleteError'));
-        }
-      },
-    });
   };
 
   const handleDeleteEntity = () => {
@@ -130,46 +71,6 @@ const EntityDetail = () => {
       },
     });
   };
-
-  const columns = [
-    {
-      title: t('translations.language'),
-      key: 'language',
-      render: (_, record) => (
-        <Space>
-          <GlobalOutlined style={{ color: '#5C1A1B' }} />
-          <Text strong>{record?.language?.name || t('common.notAvailable')}</Text>
-          <Text type="secondary">({record?.language?.abbr || 'N/A'})</Text>
-        </Space>
-      ),
-    },
-    {
-      title: t('common.actions'),
-      key: 'actions',
-      width: 120,
-      render: (_, record) => (
-        <Space size="small">
-          <Button
-            type="text"
-            icon={<EyeOutlined />}
-            onClick={() => navigate(`/entities/${slug}/translations/${record.id}`)}
-          />
-          <Button
-            type="text"
-            icon={<EditOutlined />}
-            onClick={() => navigate(`/entities/${slug}/translations/${record.id}/edit`)}
-          />
-          <Button
-            type="text"
-            danger
-            icon={<DeleteOutlined />}
-            loading={deleting}
-            onClick={() => handleDeleteTranslation(record)}
-          />
-        </Space>
-      ),
-    },
-  ];
 
   if (loading && !currentEntity) {
     return (
@@ -195,6 +96,7 @@ const EntityDetail = () => {
         <Card>
           <div style={{ display: 'flex', justifyContent: 'space-between', gap: '16px', flexWrap: 'wrap' }}>
             <Space align="start" size={16}>
+              <Avatar shape="square" size={64} src={currentEntity.logo} icon={<HomeOutlined />} />
               <div>
                 <Space align="center" style={{ marginBottom: '12px' }}>
                   <Button icon={<ArrowLeftOutlined />} onClick={() => navigate('/entities')}>
@@ -204,6 +106,9 @@ const EntityDetail = () => {
                     {currentEntity.name || currentEntity.slug || t('entities.title')}
                   </Title>
                 </Space>
+                <Tag color={getCategoryColor(currentEntity.category)}>
+                  {t(`entities.${currentEntity.category}`)}
+                </Tag>
               </div>
             </Space>
 
@@ -211,7 +116,7 @@ const EntityDetail = () => {
               <Button icon={<EditOutlined />} onClick={() => navigate(`/entities/${slug}/edit`)}>
                 {t('common.edit')}
               </Button>
-              <Button danger icon={<DeleteOutlined />} loading={deletingEntity} onClick={handleDeleteEntity}>
+              <Button danger icon={<DeleteOutlined />} loading={deleting} onClick={handleDeleteEntity}>
                 {t('common.delete')}
               </Button>
             </Space>
@@ -243,29 +148,6 @@ const EntityDetail = () => {
               )}
             </Descriptions.Item>
           </Descriptions>
-        </Card>
-
-        <Card
-          title={t('translations.title')}
-          extra={
-            <Button
-              type="primary"
-              icon={<PlusOutlined />}
-              onClick={() => navigate(`/entities/${slug}/translations/create`)}
-              disabled={availableLanguageCount === 0}
-            >
-              {t('translations.addTranslation')}
-            </Button>
-          }
-        >
-          <Table
-            columns={columns}
-            dataSource={translations}
-            rowKey={(record) => record.id}
-            loading={translationsLoading}
-            pagination={false}
-            locale={{ emptyText: t('translations.noTranslations') }}
-          />
         </Card>
       </Space>
     </div>

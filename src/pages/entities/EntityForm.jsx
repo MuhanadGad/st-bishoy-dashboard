@@ -1,16 +1,13 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { useNavigate, useParams } from 'react-router-dom';
-import { Alert, Button, Card, Form, Input, Select, Space, Spin, Typography, message } from 'antd';
+import { Button, Card, Form, Input, Select, Space, Spin, Typography, message } from 'antd';
 import { ArrowLeftOutlined, HomeOutlined, SaveOutlined } from '@ant-design/icons';
 import { useTranslation } from 'react-i18next';
-import RichTextEditor from '@/components/RichTextEditor';
 import { createEntity, fetchEntity, updateEntity, clearCurrentEntity } from '@/store/entitiesSlice';
 import { fetchTags } from '@/store/tagsSlice';
-import { createEntityTranslation, fetchLanguages } from '@/store/translationsSlice';
-import { buildDynamicDataPayload, getSummaryContent } from '@/pages/entities/entityHelpers';
 
-const { Title, Text } = Typography;
+const { Title } = Typography;
 const { Option } = Select;
 
 const entityCategories = ['diocese', 'monastery', 'organization'];
@@ -25,17 +22,9 @@ const EntityForm = () => {
   const isEditing = Boolean(slug);
   const { currentEntity, loading, creating, updating, error } = useSelector((state) => state.entities);
   const { tags, loading: tagsLoading } = useSelector((state) => state.tags);
-  const { languages, languagesLoading } = useSelector((state) => state.translations);
-
-  const [summary, setSummary] = useState('');
-  const [translationNameTouched, setTranslationNameTouched] = useState(false);
 
   useEffect(() => {
     dispatch(fetchTags({ category: 'entity', page: 1, limit: 1000 }));
-
-    if (!languages?.length) {
-      dispatch(fetchLanguages({ limit: 1000 }));
-    }
 
     if (isEditing && slug) {
       dispatch(fetchEntity(slug));
@@ -44,18 +33,7 @@ const EntityForm = () => {
     return () => {
       dispatch(clearCurrentEntity());
     };
-  }, [dispatch, isEditing, languages?.length, slug]);
-
-  const arabicLanguageId = useMemo(
-    () => languages.find((language) => language?.abbr === 'ar')?.id ?? languages[0]?.id ?? null,
-    [languages]
-  );
-
-  useEffect(() => {
-    if (!isEditing && arabicLanguageId) {
-      form.setFieldValue('language_id', form.getFieldValue('language_id') || arabicLanguageId);
-    }
-  }, [arabicLanguageId, form, isEditing]);
+  }, [dispatch, isEditing, slug]);
 
   useEffect(() => {
     if (!isEditing || !currentEntity) return;
@@ -65,7 +43,6 @@ const EntityForm = () => {
       category: currentEntity.category || undefined,
       tagIds: currentEntity.tags?.map((tag) => tag.id) || [],
     });
-    setSummary(getSummaryContent(currentEntity.dynamic_data));
   }, [currentEntity, form, isEditing]);
 
   useEffect(() => {
@@ -73,45 +50,24 @@ const EntityForm = () => {
     message.error(isEditing ? t('entities.updateError') : t('entities.createError'));
   }, [error, isEditing, t]);
 
-  const handleValuesChange = (changedValues, allValues) => {
-    if (isEditing || translationNameTouched) return;
-
-    if (Object.prototype.hasOwnProperty.call(changedValues, 'name')) {
-      form.setFieldValue('translation_name', allValues.name);
-    }
-  };
-
   const handleSubmit = async (values) => {
     try {
-      const basePayload = {
+      const payload = {
         name: values.name,
         category: values.category,
         tagIds: values.tagIds || [],
       };
 
       if (isEditing) {
-        await dispatch(updateEntity({ id: currentEntity?.id, data: basePayload })).unwrap();
+        await dispatch(updateEntity({ id: currentEntity?.id, data: payload })).unwrap();
         message.success(t('entities.updateSuccess'));
         navigate(`/entities/${currentEntity?.slug || slug}`);
         return;
       }
 
-      const createdEntity = await dispatch(createEntity(basePayload)).unwrap();
-      const entityId = createdEntity?.id || createdEntity?.base?.id;
-
-      if (entityId) {
-        await dispatch(
-          createEntityTranslation({
-            name: values.translation_name,
-            language_id: values.language_id,
-            entity_id: entityId,
-            dynamic_data: buildDynamicDataPayload(summary),
-          })
-        ).unwrap();
-      }
-
+      const createdEntity = await dispatch(createEntity(payload)).unwrap();
       message.success(t('entities.createSuccess'));
-      navigate(`/entities/${createdEntity?.slug || entityId}`);
+      navigate(`/entities/${createdEntity?.slug || createdEntity?.id}`);
     } catch (submitError) {
       if (submitError?.errorFields) return;
       message.error(isEditing ? t('entities.updateError') : t('entities.createError'));
@@ -141,22 +97,7 @@ const EntityForm = () => {
           </Title>
         </div>
 
-        <Form
-          form={form}
-          layout="vertical"
-          onFinish={handleSubmit}
-          onValuesChange={handleValuesChange}
-          style={{ maxWidth: '780px' }}
-        >
-          {!isEditing && (
-            <Alert
-              type="info"
-              showIcon
-              style={{ marginBottom: '24px' }}
-              message={t('entities.initialTranslationNotice')}
-            />
-          )}
-
+        <Form form={form} layout="vertical" onFinish={handleSubmit} style={{ maxWidth: '780px' }}>
           <Form.Item
             name="name"
             label={t('entities.name')}
@@ -192,55 +133,6 @@ const EntityForm = () => {
               }))}
             />
           </Form.Item>
-
-          {!isEditing && (
-            <>
-              <Title level={4} style={{ marginTop: '8px' }}>
-                {t('translations.addTranslation')}
-              </Title>
-
-              <Form.Item
-                name="translation_name"
-                label={t('entities.translationName')}
-                rules={[{ required: true, message: t('validation.required') }]}
-              >
-                <Input
-                  placeholder={t('entities.translationNamePlaceholder')}
-                  size="large"
-                  onChange={() => setTranslationNameTouched(true)}
-                />
-              </Form.Item>
-
-              <Form.Item
-                name="language_id"
-                label={t('translations.language')}
-                rules={[{ required: true, message: t('validation.required') }]}
-              >
-                <Select
-                  placeholder={t('translations.selectLanguage')}
-                  size="large"
-                  loading={languagesLoading}
-                >
-                  {(languages || []).map((language) => (
-                    <Option key={language.id} value={language.id}>
-                      {language.name} ({language.abbr})
-                    </Option>
-                  ))}
-                </Select>
-              </Form.Item>
-
-              <Form.Item label={t('entities.summary')}>
-                <RichTextEditor
-                  value={summary}
-                  onChange={setSummary}
-                  placeholder={t('entities.summaryPlaceholder')}
-                />
-                <Text type="secondary" style={{ display: 'block', marginTop: '8px' }}>
-                  {t('entities.summaryHelp')}
-                </Text>
-              </Form.Item>
-            </>
-          )}
 
           <div style={{ marginTop: '32px', paddingTop: '24px', borderTop: '1px solid #f0f0f0' }}>
             <Space size="large">

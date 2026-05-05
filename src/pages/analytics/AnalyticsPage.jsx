@@ -1,18 +1,12 @@
 import React, { useEffect, useState } from 'react';
-import { Card, Row, Col, Statistic, Badge, Tag, Progress } from 'antd';
+import { Card, Row, Col, Tag } from 'antd';
 import { useTranslation } from 'react-i18next';
-import { useDispatch, useSelector } from 'react-redux';
 import {
   Users,
   FileText,
   Home,
   Tags,
-  BookOpen,
   Church,
-  User,
-  Calendar,
-  TrendingUp,
-  CheckCircle,
   Clock,
 } from 'lucide-react';
 import apiService from '@/services/apiService';
@@ -21,8 +15,6 @@ import CenteredLoader from '@/components/CenteredLoader';
 // Coptic Church Color Palette
 const COLORS = {
   primary: '#5C1A1B',      // Deep Coptic Red
-  secondary: '#B7884F',    // Gold/Bronze
-  accent: '#D4AF37',       // Gold
   success: '#52c41a',      // Green
   warning: '#fa8c16',      // Orange
   error: '#ff4d4f',        // Red
@@ -90,37 +82,6 @@ export default function AnalyticsPage() {
     }
   ];
 
-  const contentStats = [
-    {
-      title: t('analyticsPage.magazines'),
-      value: analyticsData?.magazineReleasesCount || 0,
-      icon: <BookOpen size={20} color={COLORS.secondary} />,
-      total: 15,
-      color: COLORS.secondary
-    },
-    {
-      title: t('analyticsPage.papalDecisions'),
-      value: analyticsData?.magazineReleasesCount || 0,
-      icon: <Church size={20} color={COLORS.primary} />,
-      total: 80,
-      color: COLORS.primary
-    },
-    {
-      title: t('analyticsPage.faqs'),
-      value: analyticsData?.faqsCount || 0,
-      icon: <CheckCircle size={20} color={COLORS.success} />,
-      total: 50,
-      color: COLORS.success
-    },
-    {
-      title: t('analyticsPage.committees'),
-      value: analyticsData?.committeesCount || 0,
-      icon: <Users size={20} color={COLORS.info} />,
-      total: 30,
-      color: COLORS.info
-    }
-  ];
-
   // Transform logHistory for recent activity
   const recentActivity = analyticsData?.logHistory?.filter(log => log).map(log => ({
     action: `${log.operation} ${log.tableName} #${log.record}`,
@@ -130,28 +91,6 @@ export default function AnalyticsPage() {
     tableName: log.tableName,
     recordId: log.record
   })) || [];
-
-  const systemHealth = [
-    { metric: t('analyticsPage.serverUptime'), value: 99.8, status: 'success' },
-    { metric: t('analyticsPage.responseTime'), value: 245, status: 'success', unit: 'ms' },
-    { metric: t('analyticsPage.storageUsed'), value: 67, status: 'warning', unit: '%' },
-    { metric: t('analyticsPage.activeSessions'), value: analyticsData?.usersCount || 0, status: 'success' }
-  ];
-
-  const getTrendColor = (status) => {
-    switch (status) {
-      case 'success': return COLORS.success;
-      case 'warning': return COLORS.warning;
-      case 'error': return COLORS.error;
-      default: return COLORS.info;
-    }
-  };
-
-  const getProgressColor = (value) => {
-    if (value >= 80) return COLORS.error;
-    if (value >= 60) return COLORS.warning;
-    return COLORS.success;
-  };
 
   return (
     <div style={{ padding: '24px' }}>
@@ -230,60 +169,8 @@ export default function AnalyticsPage() {
         ))}
       </Row>
 
-      {/* Content Management Stats */}
       <Row gutter={[24, 24]} style={{ marginBottom: '32px' }}>
-        <Col xs={24} lg={16}>
-          <Card
-            title={
-              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                <FileText size={20} color={COLORS.primary} />
-                <span>{t('analyticsPage.contentOverview')}</span>
-              </div>
-            }
-            style={{
-              borderRadius: '12px',
-              boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
-            }}
-          >
-            <Row gutter={[16, 16]}>
-              {contentStats?.filter(item => item).map((item, index) => (
-                <Col xs={12} sm={6} key={index}>
-                  <div style={{ textAlign: 'center', padding: '16px' }}>
-                    <div style={{
-                      width: '40px',
-                      height: '40px',
-                      borderRadius: '8px',
-                      background: `${item.color}15`,
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      margin: '0 auto 12px'
-                    }}>
-                      {item.icon}
-                    </div>
-                    <div style={{ fontSize: '20px', fontWeight: 600, color: item.color }}>
-                      {item.value}
-                    </div>
-                    <div style={{ color: '#64748b', fontSize: '12px', marginBottom: '8px' }}>
-                      {item.title}
-                    </div>
-                    <Progress
-                      percent={Math.round((item.value / item.total) * 100)}
-                      size="small"
-                      strokeColor={item.color}
-                      showInfo={false}
-                    />
-                    <div style={{ color: '#64748b', fontSize: '11px', marginTop: '4px' }}>
-                      {item.value} of {item.total}
-                    </div>
-                  </div>
-                </Col>
-              ))}
-            </Row>
-          </Card>
-        </Col>
-
-        <Col xs={24} lg={8}>
+        <Col xs={24}>
           <Card
             title={
               <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>

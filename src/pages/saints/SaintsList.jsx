@@ -1,176 +1,157 @@
-import React, { useEffect, useMemo, useRef, useState } from 'react';
+import { useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
-import { Button, Card, Input, Modal, Space, Table, Tag, message } from 'antd';
+import { Avatar, Button, Card, Empty, Image, Space, Table, Tag, Typography, message } from 'antd';
 import { DeleteOutlined, EditOutlined, EyeOutlined, PlusOutlined } from '@ant-design/icons';
+import { Church, ImageIcon } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
-import {
-  deleteSaint,
-  fetchSaints,
-  setSaintsLimit,
-  setSaintsPage,
-} from '@/store/saintsSlice';
+import { deleteSaint, fetchSaints, setSaintsLimit, setSaintsPage } from '@/store/saintsSlice';
+import CenteredLoader from '@/components/CenteredLoader';
+import { resolveMediaUrl } from '@/lib/mediaUrl';
 
-const { Search } = Input;
+const { Text } = Typography;
 
-const SaintsList = () => {
+export default function SaintsList() {
   const dispatch = useDispatch();
   const navigate = useNavigate();
-  const { t } = useTranslation();
-  const { saints, loading, deleting, page, limit, total } = useSelector((state) => state.saints);
-
-  const [searchText, setSearchText] = useState('');
-  const [searchDebounce, setSearchDebounce] = useState('');
-  const previousSearchRef = useRef('');
+  const { t, i18n } = useTranslation();
+  const { saints, loading, deleting, error, page, limit, total } = useSelector((state) => state.saints);
 
   useEffect(() => {
-    const timer = setTimeout(() => {
-      if (searchText.length >= 3) {
-        setSearchDebounce(searchText);
-      } else if (searchText.length === 0) {
-        setSearchDebounce('');
-      }
-    }, 500);
+    dispatch(fetchSaints({ page, limit }));
+  }, [dispatch, page, limit]);
 
-    return () => clearTimeout(timer);
-  }, [searchText]);
-
-  useEffect(() => {
-    const searchChanged = previousSearchRef.current !== searchDebounce;
-    previousSearchRef.current = searchDebounce;
-
-    if (searchChanged && page !== 1) {
-      dispatch(setSaintsPage(1));
-      return;
-    }
-
-    dispatch(fetchSaints({ page, limit, search: searchDebounce }));
-  }, [dispatch, limit, page, searchDebounce]);
-
-  const handleDelete = (saint) => {
-    Modal.confirm({
-      title: t('common.deleteConfirm'),
-      content: t('saints.deleteConfirm', {
-        name: saint?.name || saint?.slug || t('common.notAvailable'),
-      }),
-      okText: t('common.delete'),
-      okType: 'danger',
-      cancelText: t('common.cancel'),
-      onOk: async () => {
-        try {
-          await dispatch(deleteSaint(saint.id)).unwrap();
-          message.success(t('saints.deleteSuccess'));
-        } catch (error) {
-          message.error(t('saints.deleteError'));
-        }
-      },
-    });
+  const getSaintName = (saint) => {
+    return i18n.language === 'ar' && saint.name_ar ? saint.name_ar : saint.name;
   };
 
-  const columns = useMemo(
-    () => [
-      {
-        title: t('saints.name'),
-        dataIndex: 'name',
-        key: 'name',
-        render: (value) => <strong>{value || t('common.notAvailable')}</strong>,
-      },
-      {
-        title: t('saints.saintDay'),
-        dataIndex: 'saint_day',
-        key: 'saint_day',
-        render: (value) => value || t('common.notAvailable'),
-      },
-      {
-        title: t('common.status'),
-        dataIndex: 'isActive',
-        key: 'isActive',
-        width: 120,
-        render: (isActive) => (
-          <Tag color={isActive ? 'success' : 'default'}>
-            {isActive ? t('common.active') : t('common.inactive')}
-          </Tag>
+  const handleDelete = async (saint) => {
+    try {
+      await dispatch(deleteSaint(saint.id)).unwrap();
+      message.success(t('saints.deleteSuccess'));
+    } catch (submitError) {
+      message.error(submitError?.message || submitError?.detail || t('saints.deleteError'));
+    }
+  };
+
+  const columns = [
+    {
+      title: t('saints.image'),
+      dataIndex: 'image',
+      key: 'image',
+      width: 92,
+      render: (image, record) =>
+        image ? (
+          <Image
+            src={resolveMediaUrl(image)}
+            alt={getSaintName(record)}
+            width={52}
+            height={52}
+            style={{ objectFit: 'cover', borderRadius: 10 }}
+            fallback=""
+          />
+        ) : (
+          <Avatar size={52} icon={<ImageIcon size={20} />} />
         ),
-      },
-      {
-        title: t('common.actions'),
-        key: 'actions',
-        width: 160,
-        render: (_, record) => (
-          <Space size="small">
-            <Button
-              type="text"
-              icon={<EyeOutlined />}
-              title={t('common.view')}
-              onClick={() => navigate(`/saints/${record.id}`)}
-            />
-            <Button
-              type="text"
-              icon={<EditOutlined />}
-              title={t('common.edit')}
-              onClick={() => navigate(`/saints/${record.id}/edit`)}
-            />
-            <Button
-              type="text"
-              danger
-              icon={<DeleteOutlined />}
-              title={t('common.delete')}
-              loading={deleting}
-              onClick={() => handleDelete(record)}
-            />
-          </Space>
-        ),
-      },
-    ],
-    [deleting, navigate, t]
-  );
+    },
+    {
+      title: t('saints.name'),
+      dataIndex: 'name',
+      key: 'name',
+      render: (_, record) => (
+        <div>
+          <Text strong style={{ display: 'block', fontSize: '15px' }}>
+            {getSaintName(record) || t('common.notAvailable')}
+          </Text>
+          <Text type="secondary">{record.name || t('common.notAvailable')}</Text>
+        </div>
+      ),
+    },
+    {
+      title: t('saints.hasDetails'),
+      dataIndex: 'hasDetails',
+      key: 'hasDetails',
+      width: 140,
+      render: (hasDetails) => (
+        <Tag color={hasDetails ? 'success' : 'default'}>
+          {hasDetails ? t('common.yes') : t('common.no')}
+        </Tag>
+      ),
+    },
+    {
+      title: t('common.actions'),
+      key: 'actions',
+      width: 140,
+      render: (_, record) => (
+        <Space size="small">
+          <Button type="text" icon={<EyeOutlined />} onClick={() => navigate(`/saints/${record.id}`)} />
+          <Button type="text" icon={<EditOutlined />} onClick={() => navigate(`/saints/${record.id}/edit`)} />
+          <Button
+            type="text"
+            danger
+            icon={<DeleteOutlined />}
+            loading={deleting}
+            onClick={() => handleDelete(record)}
+          />
+        </Space>
+      ),
+    },
+  ];
+
+  if (error) {
+    return (
+      <div style={{ padding: '24px' }}>
+        <Card>
+          <Empty description={error} image={Empty.PRESENTED_IMAGE_SIMPLE}>
+            <Button type="primary" onClick={() => dispatch(fetchSaints({ page, limit }))}>
+              {t('common.retry')}
+            </Button>
+          </Empty>
+        </Card>
+      </div>
+    );
+  }
 
   return (
     <div style={{ padding: '24px' }}>
-      <Card>
-        <div
-          style={{
-            marginBottom: '16px',
-            display: 'flex',
-            justifyContent: 'space-between',
-            alignItems: 'center',
-            gap: '16px',
-            flexWrap: 'wrap',
-          }}
-        >
-          <h2 style={{ margin: 0 }}>{t('saints.title')}</h2>
-          <Button type="primary" icon={<PlusOutlined />} onClick={() => navigate('/saints/create')}>
-            {t('saints.create')}
-          </Button>
-        </div>
-
-        <div style={{ marginBottom: '16px' }}>
-          <Search
-            allowClear
-            value={searchText}
-            placeholder={t('saints.searchPlaceholder')}
-            onChange={(event) => setSearchText(event.target.value)}
-            style={{ maxWidth: 420 }}
+      <Card
+        title={
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '16px', flexWrap: 'wrap' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <Church size={24} color="#5C1A1B" />
+              <span style={{ fontSize: '20px', fontWeight: 600, color: '#5C1A1B' }}>
+                {t('navigation.saints')}
+              </span>
+            </div>
+            <Button type="primary" icon={<PlusOutlined />} onClick={() => navigate('/saints/create')} style={{ background: '#5C1A1B' }}>
+              {t('saints.create')}
+            </Button>
+          </div>
+        }
+      >
+        {loading && !saints.length ? (
+          <CenteredLoader minHeight={320} />
+        ) : (
+          <Table
+            rowKey="id"
+            columns={columns}
+            dataSource={saints}
+            pagination={{
+              current: page,
+              pageSize: limit,
+              total,
+              showSizeChanger: true,
+              onChange: (nextPage, nextLimit) => {
+                if (nextLimit !== limit) {
+                  dispatch(setSaintsLimit(nextLimit));
+                  return;
+                }
+                dispatch(setSaintsPage(nextPage));
+              },
+            }}
           />
-        </div>
-
-        <Table
-          rowKey="id"
-          loading={loading}
-          columns={columns}
-          dataSource={saints}
-          pagination={{
-            current: page,
-            pageSize: limit,
-            total,
-            onChange: (nextPage) => dispatch(setSaintsPage(nextPage)),
-            onShowSizeChange: (_, nextLimit) => dispatch(setSaintsLimit(nextLimit)),
-            showSizeChanger: false,
-          }}
-        />
+        )}
       </Card>
     </div>
   );
-};
-
-export default SaintsList;
+}
