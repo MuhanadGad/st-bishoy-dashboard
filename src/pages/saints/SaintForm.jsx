@@ -60,6 +60,7 @@ export default function SaintForm() {
       name: currentSaint.name || '',
       name_ar: currentSaint.name_ar || '',
       rank: currentSaint.rank || undefined,
+      departed: currentSaint.departed ?? false,
       image: currentSaint.image || '',
       description: currentSaint.description || '',
       hasDetails: currentSaint.hasDetails ?? false,
@@ -75,6 +76,7 @@ export default function SaintForm() {
       name: values.name?.trim(),
       name_ar: values.name_ar?.trim(),
       ...(values.rank ? { rank: values.rank } : {}),
+      departed: values.departed ?? false,
       image: values.image || '',
       description: values.description?.trim() || '',
       hasDetails: values.hasDetails ?? false,
@@ -131,7 +133,7 @@ export default function SaintForm() {
         </div>
 
         <Card loading={loading && isEditMode}>
-          <Form form={form} layout="vertical" initialValues={{ hasDetails: false }} onFinish={handleSubmit}>
+          <Form form={form} layout="vertical" initialValues={{ departed: false, hasDetails: false }} onFinish={handleSubmit}>
             <Row gutter={[24, 0]}>
               <Col xs={24} lg={16}>
                 <Row gutter={16}>
@@ -176,6 +178,11 @@ export default function SaintForm() {
                         options={rankOptions}
                         allowClear={isEditMode}
                       />
+                    </Form.Item>
+                  </Col>
+                  <Col xs={24} md={12}>
+                    <Form.Item label={t('saints.departed')} name="departed" valuePropName="checked">
+                      <Switch checkedChildren={t('common.yes')} unCheckedChildren={t('common.no')} />
                     </Form.Item>
                   </Col>
                 </Row>

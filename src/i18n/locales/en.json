@@ -417,6 +417,7 @@
     "name": "Name",
     "nameAr": "Name (Arabic)",
     "rank": "Rank",
+    "departed": "Departed",
     "image": "Image",
     "description": "Description",
     "hasDetails": "Has Details",

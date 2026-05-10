@@ -10,6 +10,7 @@ const normalizeSaint = (saint) => {
     name: saint.name || '',
     name_ar: saint.name_ar || '',
     rank: saint.rank || '',
+    departed: Boolean(saint.departed),
     image: saint.image || '',
     description: saint.description || '',
     hasDetails: Boolean(saint.hasDetails),

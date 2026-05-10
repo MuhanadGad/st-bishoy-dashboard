@@ -147,6 +147,10 @@ export default function SaintDetail() {
               </Space>
 
               <Space wrap size={[8, 8]} style={{ marginBottom: "16px" }}>
+                <Tag color={currentSaint.departed ? "default" : "success"}>
+                  {t("saints.departed")}:{" "}
+                  {currentSaint.departed ? t("common.yes") : t("common.no")}
+                </Tag>
                 <Tag color={currentSaint.hasDetails ? "success" : "default"}>
                   {t("saints.hasDetails")}:{" "}
                   {currentSaint.hasDetails ? t("common.yes") : t("common.no")}
@@ -162,6 +166,9 @@ export default function SaintDetail() {
                 </Descriptions.Item>
                 <Descriptions.Item label={t("saints.rank")}>
                   {saintRank}
+                </Descriptions.Item>
+                <Descriptions.Item label={t("saints.departed")}>
+                  {currentSaint.departed ? t("common.yes") : t("common.no")}
                 </Descriptions.Item>
                 <Descriptions.Item label={t("saints.description")}>
                   {currentSaint.description || t("common.notAvailable")}
