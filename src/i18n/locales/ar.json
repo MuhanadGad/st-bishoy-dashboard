@@ -30,7 +30,8 @@
     "projects": "المشاريع",
     "products": "المنتجات",
     "events": "الفعاليات",
-    "sermons": "العظات"
+    "sermons": "العظات",
+    "coptic": "قبطي"
   },
   "analytics": {
     "title": "تحليلات الأبرشية القبطية الأرثوذكسية",
@@ -1233,5 +1234,35 @@
     "accessDeniedDescription": "ليس لديك إذن للوصول إلى هذه الصفحة.",
     "returnToDashboard": "العودة إلى لوحة التحكم",
     "sessionExpired": "انتهت صلاحية جلستك. يرجى تسجيل الدخول مرة أخرى."
+  },
+  "coptic": {
+    "title": "قبطي",
+    "singletonId": "معرف السجل",
+    "coverSection": "الغلاف",
+    "coverImage": "صورة الغلاف",
+    "uploadCoverImage": "رفع صورة الغلاف",
+    "popeShenodaSection": "ضريح البابا شنودة",
+    "popeShenodaShrine": "ضريح البابا شنودة (إنجليزي)",
+    "popeShenodaShrineAr": "ضريح البابا شنودة (عربي)",
+    "popeShenodaShrinePlaceholder": "أدخل وصف ضريح البابا شنودة",
+    "popeShenodaShrineArPlaceholder": "أدخل وصف ضريح البابا شنودة بالعربية",
+    "popeShenodaShrineImage": "صورة ضريح البابا شنودة",
+    "uploadPopeShenodaImage": "رفع صورة البابا شنودة",
+    "anbaSarabamonSection": "ضريح الأنبا سرابامون",
+    "anbaSarabamonShrine": "ضريح الأنبا سرابامون (إنجليزي)",
+    "anbaSarabamonShrineAr": "ضريح الأنبا سرابامون (عربي)",
+    "anbaSarabamonShrinePlaceholder": "أدخل وصف ضريح الأنبا سرابامون",
+    "anbaSarabamonShrineArPlaceholder": "أدخل وصف ضريح الأنبا سرابامون بالعربية",
+    "anbaSarabamonShrineImage": "صورة ضريح الأنبا سرابامون",
+    "uploadAnbaSarabamonImage": "رفع صورة الأنبا سرابامون",
+    "departedSection": "الراحلون",
+    "departedDescription": "وصف الراحلين",
+    "departedDescriptionPlaceholder": "أدخل وصف الراحلين",
+    "noImage": "لا توجد صورة",
+    "removeImage": "حذف الصورة",
+    "imageProcessError": "فشل معالجة الصورة",
+    "fetchError": "فشل تحميل محتوى صفحة القبط",
+    "saveSuccess": "تم تحديث صفحة القبط بنجاح",
+    "saveError": "فشل تحديث صفحة القبط"
   }
 }

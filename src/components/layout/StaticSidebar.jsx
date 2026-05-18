@@ -8,6 +8,7 @@ import {
   ProjectOutlined,
   ShoppingOutlined,
   SoundOutlined,
+  BookOutlined,
 } from '@ant-design/icons';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
@@ -35,6 +36,12 @@ export default function StaticSidebar({ collapsed }) {
       icon: <HomeOutlined />,
       label: t('navigation.monastery'),
       onClick: () => navigate('/monastery'),
+    },
+    {
+      key: '/coptic',
+      icon: <BookOutlined />,
+      label: t('navigation.coptic'),
+      onClick: () => navigate('/coptic'),
     },
     {
       key: '/monks',

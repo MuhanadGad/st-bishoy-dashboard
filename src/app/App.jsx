@@ -23,6 +23,7 @@ import SaintDetail from '@/pages/saints/SaintDetail';
 import SaintForm from '@/pages/saints/SaintForm';
 import HomePage from '@/pages/home/HomePage';
 import MonasteryPage from '@/pages/monastery/MonasteryPage';
+import CopticPage from '@/pages/coptic/CopticPage';
 import ProjectsList from '@/pages/projects/ProjectsList';
 import ProjectDetail from '@/pages/projects/ProjectDetail';
 import ProjectForm from '@/pages/projects/ProjectForm';
@@ -85,6 +86,7 @@ export default function App() {
 
                       <Route path="home" element={<ProtectedRoute requiredRole="Admin"><HomePage /></ProtectedRoute>} />
                       <Route path="monastery" element={<ProtectedRoute requiredRole="Admin"><MonasteryPage /></ProtectedRoute>} />
+                      <Route path="coptic" element={<ProtectedRoute requiredRole="Admin"><CopticPage /></ProtectedRoute>} />
 
                       <Route path="monks" element={<ProtectedRoute requiredRole="Admin"><MonksList /></ProtectedRoute>} />
                       <Route path="monks/create" element={<ProtectedRoute requiredRole="Admin"><MonkForm /></ProtectedRoute>} />

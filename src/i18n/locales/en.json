@@ -30,7 +30,8 @@
     "projects": "Projects",
     "products": "Products",
     "events": "Events",
-    "sermons": "Sermons"
+    "sermons": "Sermons",
+    "coptic": "Coptic"
   },
   "analyticsPage": {
     "totalUsers": "Total Users",
@@ -1249,5 +1250,35 @@
     "accessDeniedDescription": "You do not have permission to access this page.",
     "returnToDashboard": "Return to Dashboard",
     "sessionExpired": "Your session has expired. Please log in again."
+  },
+  "coptic": {
+    "title": "Coptic",
+    "singletonId": "Record ID",
+    "coverSection": "Cover",
+    "coverImage": "Cover Image",
+    "uploadCoverImage": "Upload Cover Image",
+    "popeShenodaSection": "Pope Shenoda Shrine",
+    "popeShenodaShrine": "Pope Shenoda Shrine (English)",
+    "popeShenodaShrineAr": "Pope Shenoda Shrine (Arabic)",
+    "popeShenodaShrinePlaceholder": "Enter Pope Shenoda shrine description",
+    "popeShenodaShrineArPlaceholder": "Enter Pope Shenoda shrine description in Arabic",
+    "popeShenodaShrineImage": "Pope Shenoda Shrine Image",
+    "uploadPopeShenodaImage": "Upload Pope Shenoda Image",
+    "anbaSarabamonSection": "Anba Sarabamon Shrine",
+    "anbaSarabamonShrine": "Anba Sarabamon Shrine (English)",
+    "anbaSarabamonShrineAr": "Anba Sarabamon Shrine (Arabic)",
+    "anbaSarabamonShrinePlaceholder": "Enter Anba Sarabamon shrine description",
+    "anbaSarabamonShrineArPlaceholder": "Enter Anba Sarabamon shrine description in Arabic",
+    "anbaSarabamonShrineImage": "Anba Sarabamon Shrine Image",
+    "uploadAnbaSarabamonImage": "Upload Anba Sarabamon Image",
+    "departedSection": "Departed",
+    "departedDescription": "Departed Description",
+    "departedDescriptionPlaceholder": "Enter departed description",
+    "noImage": "No image uploaded",
+    "removeImage": "Remove Image",
+    "imageProcessError": "Failed to process image",
+    "fetchError": "Failed to fetch Coptic page content",
+    "saveSuccess": "Coptic page updated successfully",
+    "saveError": "Failed to update Coptic page"
   }
 }
